@@ -1,8 +1,8 @@
 # AI Nexus API
 
-Production-oriented multi-provider AI integration platform built with ASP.NET Core.
+**Production-oriented multi-provider AI integration platform built with ASP.NET Core.**
 
-AI Nexus demonstrates how a .NET backend can expose stable AI use cases while isolating provider-specific integrations behind application abstractions.
+AI Nexus is a reference architecture for exposing stable AI use cases while isolating provider-specific integrations behind a clean application boundary.
 
 ## Architecture
 
@@ -20,40 +20,46 @@ AINexus.Infrastructure
     +-- Azure OpenAI
 ```
 
+### Layers
+
+- **Domain** — provider-independent concepts.
+- **Application** — use cases and abstractions.
+- **Infrastructure** — external AI provider adapters and resilient HTTP clients.
+- **API** — REST endpoints, JWT authentication, rate limiting and OpenAPI.
+
 ## Features
 
 - ASP.NET Core 10 REST API
-- N-Layer architecture
-- Provider abstraction for OpenAI, Gemini, Claude and Azure OpenAI
-- Chat, summarization, sentiment analysis, Q&A and content generation
-- JWT authentication
-- IP-based fixed-window rate limiting
-- IHttpClientFactory and resilient outbound HTTP
-- ProblemDetails exception handling
+- N-Layer architecture and dependency inversion
+- OpenAI, Google Gemini, Anthropic Claude and Azure OpenAI adapters
+- Chat / text generation
+- Text summarization
+- Sentiment analysis
+- JWT authentication with role claims
+- Fixed-window IP rate limiting (60 requests/minute)
+- `IHttpClientFactory` with resilience handlers
+- Centralized ProblemDetails error endpoint
 - Swagger / OpenAPI
 - Health endpoint
-- Docker support
+- Docker and Docker Compose
 - Unit tests
-- Secret-free configuration
+- No secrets committed to source control
 
 ## API
 
 | Method | Endpoint | Purpose |
 |---|---|---|
-| POST | `/api/v1/auth/token` | Demo JWT token |
+| POST | `/api/v1/auth/token` | Issue a demo JWT |
 | POST | `/api/v1/ai/chat` | General AI interaction |
 | POST | `/api/v1/ai/summarize` | Summarize text |
-| POST | `/api/v1/ai/sentiment` | Sentiment analysis |
-| POST | `/api/v1/ai/question-answer` | Contextual Q&A |
-| POST | `/api/v1/ai/content` | Content generation |
-| POST | `/api/v1/media/speech-to-text` | Audio transcription |
-| POST | `/api/v1/media/text-to-speech` | Speech synthesis |
-| POST | `/api/v1/media/text-to-image` | Image generation |
-| GET | `/health` | Liveness |
+| POST | `/api/v1/ai/sentiment` | Analyze sentiment |
+| GET | `/health` | Liveness check |
+
+All `/api/v1/ai/*` endpoints require a bearer token.
 
 ## Configuration
 
-Never commit API keys. Use environment variables or .NET User Secrets.
+Never commit API keys or signing keys. Use .NET User Secrets, environment variables or a managed secret store.
 
 ```text
 Authentication__SigningKey
@@ -73,14 +79,14 @@ AI__AzureOpenAI__Deployment
 AI__AzureOpenAI__ApiVersion
 ```
 
-## Run
+## Run locally
 
 ```bash
 dotnet restore
 dotnet run --project src/AINexus.Api
 ```
 
-Swagger is available in Development at `/swagger`.
+Swagger is available at `/swagger` in Development.
 
 ## Docker
 
@@ -88,7 +94,7 @@ Swagger is available in Development at `/swagger`.
 docker compose up --build
 ```
 
-The container listens on port 8080.
+The container listens on port `8080`.
 
 ## Engineering principles
 
@@ -106,7 +112,8 @@ The container listens on port 8080.
 
 - Streaming responses
 - Persistent conversation history
-- OpenTelemetry
+- Speech-to-text / text-to-speech / text-to-image endpoints
+- OpenTelemetry tracing and metrics
 - Redis-backed distributed rate limiting
 - OIDC / Microsoft Entra ID
 - Integration tests with provider fakes
